@@ -473,15 +473,7 @@
 <p>在P5的课下，你需要思考好，在面对新的指令的时候（既有课上也有P6课下的需求），如何准确的设计它们的对应的控制信号，找到他们的时间参数(TUSE,TNEW)，摸索出一套简洁的思考体系和适合自己的针对流水线的debug方法</p>
 <p>P5的描述体系化很强，你会在不同的PPT上看到不同的表达和讲述方式，这里建议仅仅选定一个作为主要理解和出发的模范。</p>
 <p>在写代码之前，强烈建议自己手绘一下流水线设计图，或者至少找一张可靠的图看着写。</p>
-<h2 id="关于工程"><a href="#关于工程" class="headerlink" title="关于工程"></a>关于工程</h2><h3 id="关于工程：信号"><a href="#关于工程：信号" class="headerlink" title="关于工程：信号"></a>关于工程：信号</h3><p>经历过P3P4的同学应该知道，课上对于cpu的快速且逻辑清晰的修改是通过考试必要条件，在P5中由于流水线的分级，导致信号多了很多，信号的层次和逻辑也变得很复杂，针对新增加的信号，课上或者课下经常会导致“这里添了那里没添”的bug。</p>
-<p>还有一种情况就是，自行设定的一些信号之间的关联度太强，在修改信号的时候。并不能完全的剥离其具体细致的功能，导致明明在逻辑上一些功能是应该分开的，但是却在实现上莫名其妙牵连了。</p>
-<p>这里给出的建议是：将信号设定的时候尽可能的“独立”，减少一个特殊信号（比如各种条件跳转+写入系列的）与其他信号的功能交集。</p>
-<h3 id="关于工程：模块化的度"><a href="#关于工程：模块化的度" class="headerlink" title="关于工程：模块化的度"></a>关于工程：模块化的度</h3><p>经过P3P4我们应该都知道了，在编写功能实现的时候都要选择进行“模块化”封装，让复杂的功能在一个单独的文件（模块.v）文件中完成，可以在顶层模块里变得很清晰的仅仅体现大的模块的关系而不是拘泥于模块或者某段线路的具体实现。</p>
-<p>但是，过于追求模块化真的好吗？为了一个“封装”会不会导致模块的层数过于多呢？在修改的时候会不会因此导致需要考虑改变的地方过多而忘记修改？因为端口的连线本身也是代价啊，你那么多东西都要放到这个模块里面，本身连进来的线就会很多吧？</p>
-<p>在此不做过多讨论，就是给出建议：把握好模块的度：能保证修改的时候分立，不必要组合起来成一块的没必要强行组合成一个块。</p>
-<h3 id="关于工程：命名"><a href="#关于工程：命名" class="headerlink" title="关于工程：命名"></a>关于工程：命名</h3><p>在信号多很多的情况下，命名就是很重要的一件事情了，命名方式因人而异，但是笔者提出几个需要注意的点：</p>
-<p>1.一定要在很显眼的地方表现出这个信号是在哪一级的信号，比如****<em>D<br>,D</em>****之类的</p>
-<p>2.在其中，很多信号其实有着相似的功能，命名起来简单的陈述其用途则写起来大同小异，但是如何用他们的名字就“望文生义”地看出来具体是这些类似功能的信号中的哪个信号？。要实现对自己命名格式的约定，自己在命名方式上统一的选择“在什么地方的，用什么样的表达”。</p>
+<p>在搞信号的时候<strong>一定一定要搞清楚是哪一级的信号，逻辑上该搞的是哪一级</strong></p>
 <h2 id="一些需要思考的问题的解释"><a href="#一些需要思考的问题的解释" class="headerlink" title="一些需要思考的问题的解释"></a>一些需要思考的问题的解释</h2><p>P5中相比于P4，变化最大的就是新增的延迟槽、转发暂停和各级流水线寄存器什么的。</p>
 <h3 id="延迟槽是什么？"><a href="#延迟槽是什么？" class="headerlink" title="延迟槽是什么？"></a>延迟槽是什么？</h3><p>延迟槽是什么？</p>
 <p>延迟槽指的是跟在跳转指令之后的一条指令(跳转指令包括beq,j,jr,jal等)，无论是否跳转(beq)均执行。</p>
@@ -498,7 +490,7 @@
 <p>1.需要接受数据的指令在后面，几个（1~2）周期不移动</p>
 <p>2.生成数据的指令在前面，一直向下移动到执行结束，但是一旦生成了后面那个等着数据的指令所需要的数据，会告诉UNIT</p>
 <p>3.本质上生成数据最后为了传递给前面也要用到转发</p>
-<p>4.在前面的指令流动后面的指令卡住时，我们认为二者中间的级的寄存器会被插入nop，不进行任何操作，而这个插入需要我们在流水线寄存器上设计控制信号完成</p>
+<p>4.在前面的指令流动后面的指令卡住时，我们认为二者中间的级的寄存器会被插入nop，不进行任何操作，而这个插入需要我们在流水线寄存器上设计控制信号完成，当检测到需要插入nop的时候，UNIT 对几个流水线寄存器同时变化信号，来控制其指令的流动。</p>
 <h4 id="转发"><a href="#转发" class="headerlink" title="转发"></a>转发</h4><p><del>已经说阻塞也需要转发了，想必转发非常的重要，非常的关键！已经等不及了，快点端上来罢！</del></p>
 <p>转发确实是流水线的核心之一，虽然有关转发的代码写的确实行数不是很多，但是搞清楚怎么工程化的去完成它还是很费脑子的。</p>
 <p>转发的目的是，前级的指令生成了数据（生成的除了jal在E级就能生成PC+8剩下都必然是在MW级才生成），在W级<em>做完之后</em>才算写回寄存器功成身退，但是同时后级并行的指令（D级的，需要立即访问寄存器堆，E，M级的，已经错过了访问寄存器堆的机会）需要一个线来把最新生成的数据代替之前它们携带的旧的寄存器的数据传递&#x2F;运算下去。</p>
@@ -863,7 +855,7 @@
 </tr>
 </tbody></table>
 <p>针对每一个指令的Tuse和Tnew,我们只需要在CTRL中识别指令的时候根据识别出来的指令assign它的T值然后传出去就行了。<br>Tuse&#x3D;&#x2F;代表不需要，那么取一个比2大的数字比如3就行了</p>
-<p>|    |Tuse|  |Tnew| |  | regwrite|<br>|—-|—-|–|–|–|–|——|			<br>| 指令  |rs	|rt	|E	|M	|W	| （）  		<br>|add	|1	|1	|1	|0	|0	|1				<br>|sub	|1	|1	|1	|0	|0	|1				<br>|ori	|1	|x	|1	|0	|0	|1				<br>|lw	    |1	|x	|2	|1	|0	|1				<br>|sw	    |1	|2	|0	|0	|0	|0				<br>|beq	|0	|0	|0	|0	|0	|0				<br>|lui	|x	|x	|1	|0	|0	|1				<br>|jal	|x	|x	|0	|0	|0	|1				<br>|jr     |0	|x	|0	|0	|0	|0				<br>|nop	|x	|x	|0	|0	|0	|0	</p>
+<p>|    |Tuse|  |Tnew| |  | regwrite|<br>|—-|—-|–|—|–|–|———|			<br>| 指令  |rs	|rt	|E	|M	|W	| | 		<br>|add	|1	|1	|1	|0	|0	|1	|			<br>|sub	|1	|1	|1	|0	|0	|1	|			<br>|ori	|1	|x	|1	|0	|0	|1	|		<br>|lw	    |1	|x	|2	|1	|0	|1	|			<br>|sw	    |1	|2	|0	|0	|0	|0	|			<br>|beq	|0	|0	|0	|0	|0	|0	|			<br>|lui	|x	|x	|1	|0	|0	|1	|			<br>|jal	|x	|x	|0	|0	|0	|1	|			<br>|jr     |0	|x	|0	|0	|0	|0	|			<br>|nop	|x	|x	|0	|0	|0	|0	|</p>
 <p>这里给出具体在CTRL中的时间实现</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">assign Tnew_D=(opcode==lw)?2&#x27;b10:</span><br><span class="line">((RIop==opcode&amp;&amp;(func==add||func==sub))||opcode==lui||opcode==ori)?2&#x27;b01:2&#x27;b0;</span><br><span class="line"></span><br><span class="line">assign Tuse_RS=((RIop==opcode&amp;&amp;(func==add||func==sub))||opcode==ori||opcode==lw||opcode==sw)?2&#x27;b1:</span><br><span class="line">               ((RIop==opcode&amp;&amp;func==jr)||opcode==beq)?2&#x27;b0:2&#x27;b11;</span><br><span class="line"></span><br><span class="line">assign Tuse_RT=(RIop==opcode&amp;&amp;(func==add||func==sub)?2&#x27;b01:</span><br><span class="line">               (opcode==sw)?2&#x27;b10:</span><br><span class="line">				(opcode==beq)?2&#x27;b00:2&#x27;b11;</span><br></pre></td></tr></table></figure>
 
@@ -879,14 +871,15 @@
 <p>FORWARD：存在数据冲突，而且前面的指令是要写寄存器，而且前面的指令确实已经生成数据了(Tnew&#x3D;0)</p>
 <p><strong>注意要写的是0的的话绝不能转发，要特判！</strong></p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">assign STALL=STALL_RS|STALL_RT;</span><br><span class="line"></span><br><span class="line">assign STALL_RS=(Tnew_E&gt;Tuse_RS&amp;&amp;(A3_E!=5&#x27;b0&amp;&amp;A3_E==RS_D))||(Tnew_M&gt;Tuse_RS&amp;&amp;(A3_M!=5&#x27;b0&amp;&amp;A3_M==RS_D))?1&#x27;b1:1&#x27;b0;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">assign FORWARD_S_D=(A3_E!=5&#x27;b0&amp;&amp;A3_E==RS_D&amp;&amp;Tnew_E==2&#x27;b0&amp;&amp;RegWrite_E==1&#x27;b1)?2&#x27;b10:</span><br><span class="line">                   (A3_M!=5&#x27;b0&amp;&amp;A3_M==RS_D&amp;&amp;Tnew_M==2&#x27;b0&amp;&amp;RegWrite_M==1&#x27;b1)?2&#x27;b01:2&#x27;b0;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-
-
-
-
-
+<h2 id="关于工程"><a href="#关于工程" class="headerlink" title="关于工程"></a>关于工程</h2><h3 id="关于工程：信号"><a href="#关于工程：信号" class="headerlink" title="关于工程：信号"></a>关于工程：信号</h3><p>经历过P3P4的同学应该知道，课上对于cpu的快速且逻辑清晰的修改是通过考试必要条件，在P5中由于流水线的分级，导致信号多了很多，信号的层次和逻辑也变得很复杂，针对新增加的信号，课上或者课下经常会导致“这里添了那里没添”的bug。</p>
+<p>还有一种情况就是，自行设定的一些信号之间的关联度太强，在修改信号的时候。并不能完全的剥离其具体细致的功能，导致明明在逻辑上一些功能是应该分开的，但是却在实现上莫名其妙牵连了。</p>
+<p>这里给出的建议是：将信号设定的时候尽可能的“独立”，减少一个特殊信号（比如各种条件跳转+写入系列的）与其他信号的功能交集。</p>
+<h3 id="关于工程：模块化的度"><a href="#关于工程：模块化的度" class="headerlink" title="关于工程：模块化的度"></a>关于工程：模块化的度</h3><p>经过P3P4我们应该都知道了，在编写功能实现的时候都要选择进行“模块化”封装，让复杂的功能在一个单独的文件（模块.v）文件中完成，可以在顶层模块里变得很清晰的仅仅体现大的模块的关系而不是拘泥于模块或者某段线路的具体实现。</p>
+<p>但是，过于追求模块化真的好吗？为了一个“封装”会不会导致模块的层数过于多呢？在修改的时候会不会因此导致需要考虑改变的地方过多而忘记修改？因为端口的连线本身也是代价啊，你那么多东西都要放到这个模块里面，本身连进来的线就会很多吧？</p>
+<p>在此不做过多讨论，就是给出建议：把握好模块的度：能保证修改的时候分立，不必要组合起来成一块的没必要强行组合成一个块。</p>
+<h3 id="关于工程：命名"><a href="#关于工程：命名" class="headerlink" title="关于工程：命名"></a>关于工程：命名</h3><p>在信号多很多的情况下，命名就是很重要的一件事情了，命名方式因人而异，但是笔者提出几个需要注意的点：</p>
+<p>1.一定要在很显眼的地方表现出这个信号是在哪一级的信号，比如****<em>D<br>,D</em>****之类的</p>
+<p>2.在其中，很多信号其实有着相似的功能，命名起来简单的陈述其用途则写起来大同小异，但是如何用他们的名字就“望文生义”地看出来具体是这些类似功能的信号中的哪个信号？。要实现对自己命名格式的约定，自己在命名方式上统一的选择“在什么地方的，用什么样的表达”。</p>
 
                 
             </div>
@@ -996,18 +989,17 @@
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="far fa-dot-circle"></i>&nbsp;本篇
-            </div>
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
             <div class="card">
-                <a href="/2022/12/29/p5-%E6%B5%81%E6%B0%B4%E7%BA%BFCPU/">
+                <a href="/2023/01/03/p6-%E6%B5%81%E6%B0%B4%E7%BA%BFCPU_plus/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/7.jpg" class="responsive-img" alt="P5 流水线CPU">
+                        <img src="/medias/featureimages/11.jpg" class="responsive-img" alt="P6 流水线CPU_plus">
                         
-                        <span class="card-title">P5 流水线CPU</span>
+                        <span class="card-title">P6 流水线CPU_plus</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -1017,9 +1009,9 @@
                         
                     </div>
                     <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2022-12-29
-                            </span>
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2023-01-03
+                        </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-user fa-fw"></i>
@@ -1028,7 +1020,6 @@
                         </span>
                     </div>
                 </div>
-
                 
                 <div class="card-action article-tags">
                     
